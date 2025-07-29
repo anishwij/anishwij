@@ -17,6 +17,18 @@ export function middleware(request: NextRequest) {
   console.log('X-Vercel-IP-Country-Region:', request.headers.get('X-Vercel-IP-Country-Region'))
   console.log('X-Vercel-IP-City:', request.headers.get('X-Vercel-IP-City'))
 
+  // Add geolocation data to search params for home page visits
+  if (request.nextUrl.pathname === '/' && !request.nextUrl.searchParams.has('geo_country')) {
+    const url = request.nextUrl.clone()
+    url.searchParams.set('geo_city', geo.city || 'null')
+    url.searchParams.set('geo_country', geo.country || 'null')
+    url.searchParams.set('geo_region', geo.region || 'null')
+    url.searchParams.set('geo_lat', geo.latitude || 'null')
+    url.searchParams.set('geo_lng', geo.longitude || 'null')
+    
+    return NextResponse.redirect(url)
+  }
+
   return NextResponse.next()
 }
 
