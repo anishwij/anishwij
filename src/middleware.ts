@@ -1,6 +1,8 @@
 import { geolocation } from '@vercel/functions'
 import { NextResponse, type NextRequest } from 'next/server'
 
+function isConsentNeeded() {}
+
 export function middleware(request: NextRequest) {
   const geo = geolocation(request)
   console.log('=== Geolocation Information ===')
@@ -25,7 +27,7 @@ export function middleware(request: NextRequest) {
     url.searchParams.set('geo_region', geo.region || 'null')
     url.searchParams.set('geo_lat', geo.latitude || 'null')
     url.searchParams.set('geo_lng', geo.longitude || 'null')
-    
+
     return NextResponse.redirect(url)
   }
 
@@ -33,14 +35,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
-  ],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)'],
 }
