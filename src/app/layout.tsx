@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './styles.css'
 import { CookieBanner } from '@/components/cookie-banner'
 import { PostHogProvider } from '@/components/providers/posthog-provider'
+import ThemeProvider from '@/components/theme-provider'
 import { fonts } from './fonts'
 
 export const metadata: Metadata = {
@@ -18,8 +19,10 @@ export default function RootLayout({
     <html lang='en' suppressHydrationWarning>
       <PostHogProvider>
         <body className={`${fonts} antialiased`}>
-          {children}
-          <CookieBanner />
+          <ThemeProvider>
+            {children}
+            <CookieBanner />
+          </ThemeProvider>
         </body>
       </PostHogProvider>
     </html>
