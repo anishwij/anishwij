@@ -27,10 +27,14 @@ const campaignRadioConfig = {
       utm_content: 'video_ad',
     },
   ],
-}
+} as const
 
-const getCampaignData = (campaignName: string) => {
-  return campaignRadioConfig.campaigns.find((campaign) => campaign.value === campaignName)
+type CampaignValue = (typeof campaignRadioConfig.campaigns)[number]['value']
+type Campaign = (typeof campaignRadioConfig.campaigns)[number]
+
+const getCampaignData = (campaignName: CampaignValue): Campaign => {
+  const campaign = campaignRadioConfig.campaigns.find((campaign) => campaign.value === campaignName)
+  return campaign!
 }
 
 const createSessionId = () => `sess:${nanoid(21)}`
@@ -38,13 +42,24 @@ const createSessionId = () => `sess:${nanoid(21)}`
 export function CampaignSelectCard() {
   const handleSubmit = async (formData: FormData) => {
     'use server'
-    const selectedCampaign = formData.get('campaign')
+    const selectedCampaign = formData.get('campaign') as CampaignValue
     const { utm_campaign, utm_source, utm_content, utm_medium, utm_term } =
       getCampaignData(selectedCampaign)
 
-    console.log(createSessionId())
-    const campaignURL = `?${utm_source}`
-    // redirect(campaignURL)
+    const sessionId = createSessionId()
+    console.log(sessionId)
+
+    const params = new URLSearchParams({
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      session_id: sessionId,
+    })
+
+    const campaignURL = `/?${params.toString()}`
+    redirect(campaignURL)
   }
 
   return (
