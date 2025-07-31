@@ -1,8 +1,6 @@
 import { geolocation } from '@vercel/functions'
 import { NextResponse, type NextRequest } from 'next/server'
 
-function isConsentNeeded() {}
-
 export function middleware(request: NextRequest) {
   const geo = geolocation(request)
   console.log('=== Geolocation Information ===')
