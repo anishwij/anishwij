@@ -1,0 +1,52 @@
+# Advanced - Upstash Documentation
+
+## Disable automatic serialization
+
+Your data is (de)serialized as 
+```
+json
+```
+ by default. This works for most use cases but you can disable it if you want:
+
+```
+const redis = new Redis({
+  // ...
+  automaticDeserialization: false,
+});
+// or
+const redis = Redis.fromEnv({
+  automaticDeserialization: false,
+});
+
+```
+
+This probably breaks quite a few types, but it’s a first step in that direction. Please report bugs and broken types [here](https://github.com/upstash/upstash-redis/issues/49).
+
+## Keep-Alive
+
+```
+@upstash/redis
+```
+ optimizes performance by reusing connections wherever possible, reducing latency. This is achieved by keeping the client in memory instead of reinitializing it with each new function invocation. As a result, when a hot lambda function receives a new request, it uses the already initialized client, allowing for the reuse of existing connections to Upstash.
+
+## Request Timout
+
+You can configure the SDK so that it will throw an error if the request takes longer than a specified time. You can achieve this using the signal parameter like this:
+
+```
+try {
+  const redis = new Redis({
+    url: "<UPSTASH_REDIS_REST_URL>",
+    token: "<UPSTASH_REDIS_REST_TOKEN>",
+    // set a timeout of 1 second
+    signal: () => AbortSignal.timeout(1000),
+  });
+} catch (error) {
+  if (error.name === "AbortError") {
+    console.error("Request timed out");
+  } else {
+    console.error("An error occurred:", error);
+  }
+}
+
+```
