@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:posthog.com)"
+    ],
+    "deny": []
+  }
+}
