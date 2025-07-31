@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { nanoid } from 'nanoid'
 import { redirect } from 'next/navigation'
 
 const campaignRadioConfig = {
@@ -32,6 +33,8 @@ const getCampaignData = (campaignName: string) => {
   return campaignRadioConfig.campaigns.find((campaign) => campaign.value === campaignName)
 }
 
+const createSessionId = () => `sess:${nanoid(21)}`
+
 export function CampaignSelectCard() {
   const handleSubmit = async (formData: FormData) => {
     'use server'
@@ -39,8 +42,9 @@ export function CampaignSelectCard() {
     const { utm_campaign, utm_source, utm_content, utm_medium, utm_term } =
       getCampaignData(selectedCampaign)
 
+    console.log(createSessionId())
     const campaignURL = `?${utm_source}`
-    redirect(campaignURL)
+    // redirect(campaignURL)
   }
 
   return (
@@ -57,7 +61,7 @@ export function CampaignSelectCard() {
             ))}
           </RadioGroup>
 
-          <Button type='submit'>Meta</Button>
+          <Button type='submit'>Init UTMs</Button>
         </form>
       </CardContent>
     </Card>
