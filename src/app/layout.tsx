@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import './styles.css'
-import { CookieBanner } from '@/components/cookie-banner'
 import { PostHogProvider } from '@/components/providers/posthog-provider'
 import ThemeProvider from '@/components/theme-provider'
 import { fonts } from './fonts'
@@ -19,10 +18,7 @@ export default function RootLayout({
     <html lang='en' suppressHydrationWarning>
       <PostHogProvider>
         <body className={`${fonts} antialiased`}>
-          <ThemeProvider>
-            {children}
-            <CookieBanner />
-          </ThemeProvider>
+          <ThemeProvider>{children}</ThemeProvider>
         </body>
       </PostHogProvider>
     </html>
