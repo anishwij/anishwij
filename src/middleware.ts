@@ -1,35 +1,54 @@
+import { env } from '@/lib/env.server'
 import { redis } from '@/lib/redis.server'
 import { nanoid } from 'nanoid'
 import { NextResponse, type NextRequest } from 'next/server'
 
 const createId = () => `sess:${nanoid(21)}`
 
-export async function middleware(request: NextRequest) {
-  // Log all cookies to see what PostHog is setting
-  console.log('All cookies:', request.cookies.getAll())
-  
-  let sessionId = request.cookies.get('sessionId')?.value
-  const pipeline = redis.pipeline()
+const utmParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'] as const
 
-  if (!sessionId) {
-    sessionId = createId()
+type UtmData = Partial<Record<(typeof utmParams)[number], string>>
+
+export async function middleware(request: NextRequest) {
+  const {
+    nextUrl: { pathname, searchParams },
+    headers,
+    cookies,
+  } = request
+  const response = NextResponse.next()
+  const utmData: UtmData = {}
+  let activeSessionId = cookies.get('sessionId')?.value
+
+  const geolocationData = {
+    country: headers.get('x-vercel-ip-country') || 'DEV',
+    city: headers.get('x-vercel-ip-city') || 'DEV',
   }
 
-  pipeline.hset(sessionId, {
-    value: 'test',
+  if (!activeSessionId) {
+    activeSessionId = createId()
+  }
+
+  utmParams.forEach((param) => {
+    const value = searchParams.get(param)
+    if (value) {
+      utmData[param] = value
+    }
   })
 
-  await pipeline.exec()
+  await redis.hset(activeSessionId, {
+    ...utmData,
+    ...geolocationData,
+    pathname: pathname,
+    userAgent: headers.get('user-agent'),
+    timestamp: Date.now(),
+  })
 
-  const response = NextResponse.next()
-
-  if (!request.cookies.get('sessionId')) {
-    response.cookies.set('sessionId', sessionId, {
+  if (!activeSessionId) {
+    response.cookies.set('sessionId', activeSessionId, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
+      maxAge: 60 * 60 * 24 * 1, // 24 hours
     })
   }
 
@@ -39,39 +58,3 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)'],
 }
-
-/*
-
-export async function middleware(request: NextRequest) {
-  const cookieStore = await cookies()
-  let sessionId = cookieStore.get('sessionId')?.value
-
-  if (!sessionId) {
-    sessionId = createId()
-  }
-
-  const pipeline = redis.pipeline()
-
-  pipeline.hset(sessionId, {
-    value: 'test',
-  })
-
-  // await pipeline.exec()
-
-  const response = NextResponse.next()
-
-  if (!cookieStore.get('sessionId')) {
-    response.cookies.set('sessionId', sessionId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    })
-  }
-
-  return response
-}
-
-
-*/
