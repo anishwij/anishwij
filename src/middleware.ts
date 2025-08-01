@@ -18,13 +18,14 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next()
   const utmData: UtmData = {}
   let activeSessionId = cookies.get('sessionId')?.value
+  const isNewSession = !activeSessionId
 
   const geolocationData = {
     country: headers.get('x-vercel-ip-country') || 'DEV',
     city: headers.get('x-vercel-ip-city') || 'DEV',
   }
 
-  if (!activeSessionId) {
+  if (isNewSession) {
     activeSessionId = createId()
   }
 
@@ -35,15 +36,17 @@ export async function middleware(request: NextRequest) {
     }
   })
 
-  await redis.hset(activeSessionId, {
-    ...utmData,
-    ...geolocationData,
-    pathname: pathname,
-    userAgent: headers.get('user-agent'),
-    timestamp: Date.now(),
-  })
+  if (activeSessionId) {
+    await redis.hset(activeSessionId, {
+      ...utmData,
+      ...geolocationData,
+      pathname: pathname,
+      userAgent: headers.get('user-agent'),
+      timestamp: Date.now(),
+    })
+  }
 
-  if (!activeSessionId) {
+  if (isNewSession && activeSessionId) {
     response.cookies.set('sessionId', activeSessionId, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',

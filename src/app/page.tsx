@@ -8,8 +8,10 @@ export default function Home() {
       <section>
         <MaxWidthWrapper className='py-12'>
           <div className='flex flex-col justify-center items-center min-h-[70svh]'>
-            <CampaignSelectCard />
-            <CampaignInfoCard />
+            <div className='flex flex-col gap-4 mx-auto max-w-100'>
+              <CampaignSelectCard />
+              <CampaignInfoCard />
+            </div>
           </div>
         </MaxWidthWrapper>
       </section>
