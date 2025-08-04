@@ -12,6 +12,8 @@ export function createSessionId() {
 
 export async function createSession(sessionId, utmData, metadata) {
   try {
-    const sessionData = {}
+    const sessionData = {
+      utm_source: utmData.utm_source || null,
+    }
   } catch (error) {}
 }
