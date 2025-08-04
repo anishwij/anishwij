@@ -7,6 +7,8 @@ export const env = createEnv({
     KV_REST_API_TOKEN: z.string().min(1),
     DATABASE_URL: z.string().min(1),
     NODE_ENV: z.enum(['development', 'production']),
+    META_ACCESS_TOKEN: z.string().min(1),
+    META_PIXEL_ID: z.string().min(1),
   },
   experimental__runtimeEnv: process.env,
 })
