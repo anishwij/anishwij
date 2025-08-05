@@ -4,7 +4,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                          USER JOURNEY TRACKING MAP                           │
+│                          USER JOURNEY TRACKING MAP                          │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 USER ACTION                 FUNCTION CALLED              SYSTEMS UPDATED
