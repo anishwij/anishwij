@@ -38,11 +38,20 @@ export async function middleware(request: NextRequest) {
 
   if (activeSessionId) {
     await redis.hset(activeSessionId, {
-      ...utmData,
-      ...geolocationData,
-      pathname: pathname,
-      userAgent: headers.get('user-agent'),
-      timestamp: Date.now(),
+      utm_source: utmData.utm_source,
+      utm_campagin: utmData.utm_campaign,
+      utm_content: utmData.utm_content,
+      utm_medium: utmData.utm_medium,
+      utm_term: utmData.utm_term,
+      country: geolocationData.country,
+      city: geolocationData.city,
+      landing_page: pathname,
+      user_agent: headers.get('user-agent'),
+      ip_address: null,
+      fbclid: null,
+      gcclid: null,
+      first_touch_timestamp: Date.now(),
+      created_at: Date.now(),
     })
   }
 
@@ -51,7 +60,7 @@ export async function middleware(request: NextRequest) {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 1, // 24 hours
+      maxAge: 60 * 60 * 24 * 7, // 7 days
     })
   }
 

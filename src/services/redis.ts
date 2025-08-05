@@ -10,10 +10,14 @@ export function createSessionId() {
   return `${SESSION_PREFIX}:${nanoid(21)}`
 }
 
+function mapSessionData(sessionId, utmData, metadata) {
+  return {
+    utm_source: utmData.utm_source || null,
+  }
+}
+
 export async function createSession(sessionId, utmData, metadata) {
   try {
-    const sessionData = {
-      utm_source: utmData.utm_source || null,
-    }
+    const sessionData = mapSessionData(sessionId, utmData, metadata)
   } catch (error) {}
 }

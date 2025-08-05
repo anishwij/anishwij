@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { nanoid } from 'nanoid'
 import { redirect } from 'next/navigation'
 
 const campaignRadioConfig = {
@@ -30,35 +29,32 @@ const campaignRadioConfig = {
 } as const
 
 type CampaignValue = (typeof campaignRadioConfig.campaigns)[number]['value']
-type Campaign = (typeof campaignRadioConfig.campaigns)[number]
 
-const getCampaignData = (campaignName: CampaignValue): Campaign => {
+const getCampaignURL = (campaignName: CampaignValue): string => {
   const campaign = campaignRadioConfig.campaigns.find((campaign) => campaign.value === campaignName)
-  return campaign!
+  
+  if (!campaign) {
+    throw new Error(`Campaign not found: ${campaignName}`)
+  }
+
+  const params = new URLSearchParams({
+    utm_source: campaign.utm_source,
+    utm_medium: campaign.utm_medium,
+    utm_campaign: campaign.utm_campaign,
+    utm_term: campaign.utm_term,
+    utm_content: campaign.utm_content,
+  })
+
+  return `/?${params.toString()}`
 }
 
-const createSessionId = () => `sess:${nanoid(21)}`
 
 export function CampaignSelectCard() {
   const handleSubmit = async (formData: FormData) => {
     'use server'
     const selectedCampaign = formData.get('campaign') as CampaignValue
-    const { utm_campaign, utm_source, utm_content, utm_medium, utm_term } =
-      getCampaignData(selectedCampaign)
+    const campaignURL = getCampaignURL(selectedCampaign)
 
-    const sessionId = createSessionId()
-    console.log(sessionId)
-
-    const params = new URLSearchParams({
-      utm_source,
-      utm_medium,
-      utm_campaign,
-      utm_term,
-      utm_content,
-      session_id: sessionId,
-    })
-
-    const campaignURL = `/?${params.toString()}`
     redirect(campaignURL)
   }
 
