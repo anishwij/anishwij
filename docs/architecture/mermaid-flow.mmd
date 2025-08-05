@@ -1,0 +1,57 @@
+---
+config:
+  theme: neo-dark
+  look: handDrawn
+---
+
+
+sequenceDiagram
+      autonumber
+      actor Browser as User
+      participant Next.js
+      participant Redis
+      participant Meta
+      participant PostHog
+      participant Stripe
+      Browser->>+Next.js: Land with UTMs
+      activate Next.js
+      Next.js->>+Redis: Create Session
+      Redis-->>-Next.js: Session Created
+      par Analytics
+        Next.js->>Meta: Send PageView
+      and
+        Next.js->>PostHog: Send PageView
+      end
+      Next.js-->>-Browser: Page Loaded
+      Browser->>+Next.js: View Content
+      activate Next.js
+      Next.js->>+Redis: Update Session
+      Redis-->>-Next.js: Session Updated
+      par Analytics
+        Next.js->>Meta: Send ViewContent
+      and
+        Next.js->>PostHog: Send ViewContent
+      end
+      deactivate Next.js
+      Browser->>+Next.js: Click Donate
+      activate Next.js
+      Next.js->>+Stripe: Create Checkout Session<br/>(with sessionId metadata)
+      Stripe-->>-Next.js: Checkout URL
+      Next.js-->>-Browser: Redirect to Stripe
+      Note over Stripe: Customer completes payment
+      Stripe->>+Next.js: Webhook (success)
+      activate Next.js
+      Next.js->>Next.js: Validate webhook signature
+      Next.js->>Next.js: Extract sessionId from metadata
+      Next.js->>+Redis: Get Session Data
+      Redis-->>-Next.js: Session Data
+      Next.js->>Next.js: Calculate conversion value
+      Next.js->>+Redis: Mark Converted
+      Redis-->>-Next.js: Updated
+      par Analytics
+        Next.js->>Meta: Send Purchase Event<br/>(with value data)
+      and
+        Next.js->>PostHog: Send Conversion
+      end
+      deactivate Next.js
+      Next.js-->>Browser: Success Page
