@@ -8,50 +8,51 @@ config:
 sequenceDiagram
       autonumber
       actor Browser as User
-      participant Next.js
+      participant Next.js (Server)
       participant Redis
       participant Meta
       participant PostHog
       participant Stripe
-      Browser->>+Next.js: Land with UTMs
-      activate Next.js
-      Next.js->>+Redis: Create Session
-      Redis-->>-Next.js: Session Created
+      Browser->>+Next.js (Server): Land with UTMs
+      activate Next.js (Server)
+      Next.js (Server)->>+Redis: Create Session
+      Redis-->>-Next.js (Server): Session Created
+      Next.js (Server)->>Next.js (Server): Clean URL (remove UTMs)
       par Analytics
-        Next.js->>Meta: Send PageView
+        Next.js (Server)->>Meta: Send PageView
       and
-        Next.js->>PostHog: Send PageView
+        Next.js (Server)->>PostHog: Send PageView
       end
-      Next.js-->>-Browser: Page Loaded
-      Browser->>+Next.js: View Content
-      activate Next.js
-      Next.js->>+Redis: Update Session
-      Redis-->>-Next.js: Session Updated
+      Next.js (Server)-->>-Browser: Page Loaded (clean URL)
+      Browser->>+Next.js (Server): View Content
+      activate Next.js (Server)
+      Next.js (Server)->>+Redis: Update Session
+      Redis-->>-Next.js (Server): Session Updated
       par Analytics
-        Next.js->>Meta: Send ViewContent
+        Next.js (Server)->>Meta: Send ViewContent
       and
-        Next.js->>PostHog: Send ViewContent
+        Next.js (Server)->>PostHog: Send ViewContent
       end
-      deactivate Next.js
-      Browser->>+Next.js: Click Donate
-      activate Next.js
-      Next.js->>+Stripe: Create Checkout Session<br/>(with sessionId metadata)
-      Stripe-->>-Next.js: Checkout URL
-      Next.js-->>-Browser: Redirect to Stripe
+      deactivate Next.js (Server)
+      Browser->>+Next.js (Server): Click Donate
+      activate Next.js (Server)
+      Next.js (Server)->>+Stripe: Create Checkout Session<br/>(with sessionId metadata)
+      Stripe-->>-Next.js (Server): Checkout URL
+      Next.js (Server)-->>-Browser: Redirect to Stripe
       Note over Stripe: Customer completes payment
-      Stripe->>+Next.js: Webhook (success)
-      activate Next.js
-      Next.js->>Next.js: Validate webhook signature
-      Next.js->>Next.js: Extract sessionId from metadata
-      Next.js->>+Redis: Get Session Data
-      Redis-->>-Next.js: Session Data
-      Next.js->>Next.js: Calculate conversion value
-      Next.js->>+Redis: Mark Converted
-      Redis-->>-Next.js: Updated
+      Stripe->>+Next.js (Server): Webhook (success)
+      activate Next.js (Server)
+      Next.js (Server)->>Next.js (Server): Validate webhook signature
+      Next.js (Server)->>Next.js (Server): Extract sessionId from metadata
+      Next.js (Server)->>+Redis: Get Session Data
+      Redis-->>-Next.js (Server): Session Data
+      Next.js (Server)->>Next.js (Server): Calculate conversion value
+      Next.js (Server)->>+Redis: Mark Converted
+      Redis-->>-Next.js (Server): Updated
       par Analytics
-        Next.js->>Meta: Send Purchase Event<br/>(with value data)
+        Next.js (Server)->>Meta: Send Purchase Event<br/>(with value data)
       and
-        Next.js->>PostHog: Send Conversion
+        Next.js (Server)->>PostHog: Send Conversion
       end
-      deactivate Next.js
-      Next.js-->>Browser: Success Page
+      deactivate Next.js (Server)
+      Next.js (Server)-->>Browser: Success Page
