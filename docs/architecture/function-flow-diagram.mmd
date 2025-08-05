@@ -1,0 +1,73 @@
+---
+config:
+  theme: neo-dark
+  look: handDrawn
+---
+
+flowchart TD
+    Start([User Request]) --> Middleware{Middleware<br/>UTM Check}
+    
+    Middleware -->|Has UTMs| CreateSession[Create/Update Session<br/>Redis]
+    Middleware -->|No UTMs| CheckExisting{Existing<br/>Session?}
+    
+    CheckExisting -->|Yes| GetSession[Get Session Data<br/>Redis]
+    CheckExisting -->|No| CreateSession
+    
+    CreateSession --> CleanURL[Clean URL<br/>Remove UTMs]
+    CleanURL --> TrackPageView[trackPageView]
+    GetSession --> TrackPageView
+    
+    TrackPageView --> GetSessionData[(Get Session Data<br/>Redis)]
+    GetSessionData --> NormalizeData[normalizeSessionData]
+    
+    NormalizeData --> MetaPageView[sendMetaPageView]
+    NormalizeData --> PostHogPageView[sendPostHogPageView]
+    
+    MetaPageView --> MetaAPI[Meta CAPI]
+    PostHogPageView --> PostHogAPI[PostHog API]
+    
+    MetaAPI --> PageViewReturn{Return Success}
+    PostHogAPI --> PageViewReturn
+    
+    PageViewReturn --> UserAction{User Action}
+    
+    UserAction -->|View Content| TrackContent[trackViewContent]
+    UserAction -->|Donate| TrackPurchase[trackPurchase]
+    UserAction -->|Continue Browsing| END([End])
+    
+    TrackContent --> GetSessionData2[(Get Session Data<br/>Redis)]
+    GetSessionData2 --> MetaViewContent[sendMetaViewContent]
+    GetSessionData2 --> PostHogEvent[capturePostHogEvent]
+    
+    MetaViewContent --> MetaAPI2[Meta CAPI]
+    PostHogEvent --> PostHogAPI2[PostHog API]
+    
+    MetaAPI2 --> ContentReturn{Return Success}
+    PostHogAPI2 --> ContentReturn
+    ContentReturn --> UserAction
+    
+    TrackPurchase --> GetSessionData3[(Get Session Data<br/>Redis)]
+    GetSessionData3 --> NormalizePurchase[normalizeSessionData]
+    
+    NormalizePurchase --> MetaPurchase[sendMetaPurchase]
+    NormalizePurchase --> PostHogConversion[sendPostHogConversion]
+    
+    MetaPurchase --> MetaAPI3[Meta CAPI]
+    PostHogConversion --> PostHogAPI3[PostHog API]
+    
+    MetaAPI3 --> PurchaseReturn{Return Success}
+    PostHogAPI3 --> PurchaseReturn
+    
+    PurchaseReturn --> UpdateSession[Mark Session Converted<br/>Redis]
+    UpdateSession --> END
+    
+    %% Styling
+    classDef processClass fill:#4a90e2,stroke:#2e5c8a,color:#fff
+    classDef dataClass fill:#50c878,stroke:#2e7d32,color:#fff
+    classDef apiClass fill:#ff6b6b,stroke:#c53030,color:#fff
+    classDef decisionClass fill:#ffa726,stroke:#ef6c00,color:#fff
+    
+    class TrackPageView,TrackContent,TrackPurchase,NormalizeData,NormalizePurchase,CleanURL processClass
+    class GetSessionData,GetSessionData2,GetSessionData3,CreateSession,UpdateSession dataClass
+    class MetaAPI,PostHogAPI,MetaAPI2,PostHogAPI2,MetaAPI3,PostHogAPI3 apiClass
+    class Middleware,CheckExisting,PageViewReturn,ContentReturn,PurchaseReturn,UserAction decisionClass
