@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './styles.css'
 // import { PostHogProvider } from '@/components/providers/posthog-provider'
 import ThemeProvider from '@/components/theme-provider'
+import { GoogleTagManager, GoogleTagManagerNoScript } from '@/services/gtm'
 import { fonts } from './fonts'
 
 export const metadata: Metadata = {
@@ -17,7 +18,11 @@ export default function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       {/* <PostHogProvider> */}
+      <head>
+        <GoogleTagManager />
+      </head>
       <body className={`${fonts} antialiased`}>
+        <GoogleTagManagerNoScript />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
       {/* </PostHogProvider> */}
