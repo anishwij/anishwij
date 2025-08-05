@@ -15,10 +15,9 @@ export async function middleware(request: NextRequest) {
     headers,
     cookies,
   } = request
-  const response = NextResponse.next()
-  const utmData: UtmData = {}
   let activeSessionId = cookies.get('sessionId')?.value
   const isNewSession = !activeSessionId
+  const hasUtmData = utmParams.some(param => searchParams.has(param))
 
   const geolocationData = {
     country: headers.get('x-vercel-ip-country') || 'DEV',
@@ -29,6 +28,7 @@ export async function middleware(request: NextRequest) {
     activeSessionId = createId()
   }
 
+  const utmData: UtmData = {}
   utmParams.forEach((param) => {
     const value = searchParams.get(param)
     if (value) {
@@ -36,13 +36,9 @@ export async function middleware(request: NextRequest) {
     }
   })
 
-  if (activeSessionId) {
-    await redis.hset(activeSessionId, {
-      utm_source: utmData.utm_source,
-      utm_campagin: utmData.utm_campaign,
-      utm_content: utmData.utm_content,
-      utm_medium: utmData.utm_medium,
-      utm_term: utmData.utm_term,
+  if (activeSessionId && (isNewSession || hasUtmData)) {
+    const now = new Date().toISOString()
+    const sessionData: Record<string, string | null> = {
       country: geolocationData.country,
       city: geolocationData.city,
       landing_page: pathname,
@@ -50,21 +46,49 @@ export async function middleware(request: NextRequest) {
       ip_address: null,
       fbclid: null,
       gcclid: null,
-      first_touch_timestamp: Date.now(),
-      created_at: Date.now(),
-    })
+    }
+
+    if (Object.keys(utmData).length > 0) {
+      sessionData.utm_source = utmData.utm_source || null
+      sessionData.utm_campaign = utmData.utm_campaign || null
+      sessionData.utm_content = utmData.utm_content || null
+      sessionData.utm_medium = utmData.utm_medium || null
+      sessionData.utm_term = utmData.utm_term || null
+    }
+
+    if (isNewSession) {
+      sessionData.first_touch_timestamp = now
+      sessionData.created_at = now
+    }
+
+    await redis.hset(activeSessionId, sessionData)
   }
 
   if (isNewSession && activeSessionId) {
+    const response = NextResponse.next()
     response.cookies.set('sessionId', activeSessionId, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     })
+    
+    if (hasUtmData) {
+      const cleanUrl = new URL(request.url)
+      utmParams.forEach(param => cleanUrl.searchParams.delete(param))
+      return NextResponse.redirect(cleanUrl)
+    }
+    
+    return response
   }
 
-  return response
+  if (hasUtmData) {
+    const cleanUrl = new URL(request.url)
+    utmParams.forEach(param => cleanUrl.searchParams.delete(param))
+    return NextResponse.redirect(cleanUrl)
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
