@@ -1,7 +1,10 @@
+// app/layout.js
+import { GoogleTagManager } from '@next/third-parties/google'
 import type { Metadata } from 'next'
 import './styles.css'
+import CookieConsent from '@/components/cookie-consent'
 import ThemeProvider from '@/components/theme-provider'
-import { ConsentModeInit, GoogleTagManager, GoogleTagManagerNoScript } from '@/services/gtm'
+import { ConsentModeInit } from '@/services/gtm'
 import { fonts } from './fonts'
 
 export const metadata: Metadata = {
@@ -16,13 +19,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' suppressHydrationWarning>
-      <head>
-        <GoogleTagManager />
-        <ConsentModeInit />
-      </head>
+      <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID!} />
       <body className={`${fonts} antialiased`}>
-        <GoogleTagManagerNoScript />
-        <ThemeProvider>{children}</ThemeProvider>
+        <ConsentModeInit />
+        <ThemeProvider>
+          {children}
+          <CookieConsent />
+        </ThemeProvider>
       </body>
     </html>
   )

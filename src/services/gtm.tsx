@@ -1,58 +1,55 @@
 import Script from 'next/script'
 
-const gtmId = process.env.NEXT_PUBLIC_GTM_ID
-
-export function GoogleTagManager() {
-  return (
-    <>
-      <Script id='gtm-script' strategy='afterInteractive'>
-        {`
-          (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-          })(window,document,'script','dataLayer','${gtmId}');
-        `}
-      </Script>
-    </>
-  )
-}
-
-export function GoogleTagManagerNoScript() {
-  return (
-    <noscript>
-      <iframe
-        src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
-        height='0'
-        width='0'
-        style={{ display: 'none', visibility: 'hidden' }}
-      />
-    </noscript>
-  )
-}
-
 export function ConsentModeInit() {
   return (
     <Script id='consent-mode-init' strategy='beforeInteractive'>
       {`
         window.dataLayer = window.dataLayer || [];
-        
-        function gtag(){
-          window.dataLayer.push(arguments);
-        }
+        function gtag(){dataLayer.push(arguments);}
         window.gtag = gtag;
         
-        gtag('consent', 'default', {
-          'ad_storage': 'denied',
-          'ad_user_data': 'denied',
-          'ad_personalization': 'denied',
-          'personalization_storage': 'denied',
-          'analytics_storage': 'denied',
-          'functionality_storage': 'granted',
-          'security_storage': 'granted',
-          'wait_for_update': 2000
-        });
+        // Check for saved consent BEFORE setting defaults
+        const savedConsent = localStorage.getItem('cookie-consent');
+        
+        if (savedConsent === 'granted') {
+          // User already consented - set as granted
+          gtag('consent', 'default', {
+            'ad_storage': 'granted',
+            'ad_user_data': 'granted',
+            'ad_personalization': 'granted',
+            'personalization_storage': 'granted',
+            'analytics_storage': 'granted',
+            'functionality_storage': 'granted',
+            'security_storage': 'granted'
+          });
+          console.log('Consent Mode initialized with saved: granted');
+        } else {
+          // No consent or denied - set as denied
+          gtag('consent', 'default', {
+            'ad_storage': 'denied',
+            'ad_user_data': 'denied',
+            'ad_personalization': 'denied',
+            'personalization_storage': 'denied',
+            'analytics_storage': 'denied',
+            'functionality_storage': 'granted',
+            'security_storage': 'granted',
+            'wait_for_update': 2000
+          });
+          console.log('Consent Mode initialized with default: denied');
+        }
       `}
     </Script>
   )
+}
+
+export function updateConsent(consentState: Record<string, string>) {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('consent', 'update', consentState)
+
+    // Also push the event for GTM
+    window.dataLayer?.push({
+      event: 'consent_update',
+      consent_status: consentState.ad_storage === 'granted' ? 'granted' : 'denied',
+    })
+  }
 }
