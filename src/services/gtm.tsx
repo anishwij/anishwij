@@ -30,3 +30,29 @@ export function GoogleTagManagerNoScript() {
     </noscript>
   )
 }
+
+export function ConsentModeInit() {
+  return (
+    <Script id='consent-mode-init' strategy='beforeInteractive'>
+      {`
+        window.dataLayer = window.dataLayer || [];
+        
+        function gtag(){
+          window.dataLayer.push(arguments);
+        }
+        window.gtag = gtag;
+        
+        gtag('consent', 'default', {
+          'ad_storage': 'denied',
+          'ad_user_data': 'denied',
+          'ad_personalization': 'denied',
+          'personalization_storage': 'denied',
+          'analytics_storage': 'denied',
+          'functionality_storage': 'granted',
+          'security_storage': 'granted',
+          'wait_for_update': 2000
+        });
+      `}
+    </Script>
+  )
+}

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './styles.css'
 import ThemeProvider from '@/components/theme-provider'
-import { GoogleTagManager, GoogleTagManagerNoScript } from '@/services/gtm'
+import { ConsentModeInit, GoogleTagManager, GoogleTagManagerNoScript } from '@/services/gtm'
 import { fonts } from './fonts'
 
 export const metadata: Metadata = {
@@ -18,6 +18,7 @@ export default function RootLayout({
     <html lang='en' suppressHydrationWarning>
       <head>
         <GoogleTagManager />
+        <ConsentModeInit />
       </head>
       <body className={`${fonts} antialiased`}>
         <GoogleTagManagerNoScript />

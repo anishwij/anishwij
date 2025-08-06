@@ -16,6 +16,7 @@ const eslintConfig = [
       'react-hooks/exhaustive-deps': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
       '@next/next/no-img-element': 'off',
+      '@next/next/no-before-interactive-script-outside-document': 'off',
     },
   },
 ]
