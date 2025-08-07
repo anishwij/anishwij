@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import './styles.css'
 import CookieConsent from '@/components/cookie-consent'
 import ThemeProvider from '@/components/theme-provider'
+import { Toaster } from '@/components/ui/sonner'
 import { ConsentModeInit } from '@/services/gtm'
 import { fonts } from './fonts'
 
@@ -25,6 +26,7 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
           <CookieConsent />
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem as RadioGroupItemImpl } from '@/components/ui/radio-group'
 import { cn } from '@/lib/utils'
 import { FormEvent } from 'react'
+import { toast } from 'sonner'
 
 function RadioGroupItem({ value }: { value: string }) {
   return (
@@ -23,7 +24,23 @@ function AmountForm() {
     const formData = new FormData(e.currentTarget)
     const amount = formData.get('amount') as '10' | '25' | '50' | '100'
 
-    console.log(amount)
+    window.dataLayer!.push({
+      event: 'purchase',
+      ecommerce: {
+        transaction_id: `test_${Date.now()}`,
+        value: parseFloat(amount),
+        currency: 'USD',
+        items: [
+          {
+            item_name: 'Donation',
+            price: parseFloat(amount),
+            quantity: 1,
+          },
+        ],
+      },
+    })
+
+    toast.message(`$${amount} value sent`)
   }
   return (
     <form onSubmit={handleSubmit} className='space-y-2'>
