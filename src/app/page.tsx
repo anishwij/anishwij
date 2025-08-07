@@ -1,3 +1,4 @@
+import { GTMButton } from '@/components/gtm-button'
 import { MaxWidthWrapper } from '@/components/max-width-wrapper'
 import Link from 'next/link'
 
@@ -10,6 +11,7 @@ export default function Home() {
             <div className='flex flex-col gap-4 mx-auto max-w-100'>
               <div>Test</div>
               <Link href={'/about'}>About</Link>
+              <GTMButton>Do Nothing</GTMButton>
             </div>
           </div>
         </MaxWidthWrapper>
